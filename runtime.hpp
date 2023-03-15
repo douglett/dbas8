@@ -36,11 +36,18 @@ struct Runtime {
 			stmt(st);
 	}
 
-	void stmt(const Node& n) {
+	int stmt(const Node& n) {
 		// printf("%s\n", n.type.c_str());
 		if      (n.type == "let") mem[ n.list.at(0).val ] = expr( n.list.at(1) );
-		else if (n.type == "if")  expr( n.list.at(0) ) && ( block( n.list.at(1) ), 1 );
+		else if (n.type == "if") {
+			if ( expr(n.list.at(0)) ) return block( n.list.at(1) ), 1;  // first condition
+			for (int i = 2; i < n.list.size(); i++)
+				if ( stmt(n.list.at(i)) ) return 1;  // sub-conditions
+		}
+		else if (n.type == "elseif") return expr(n.list.at(0)) ? (block( n.list.at(1) ), 1) : 0;
+		else if (n.type == "else")   return block( n.list.at(0) ), 1;
 		else    error("unknown statement: " + n.type);
+		return 0;
 	}
 
 	int expr(const Node& n) {

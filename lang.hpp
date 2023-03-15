@@ -8,15 +8,15 @@ using namespace std;
 
 
 // - PROG
-// - DIM ::= DIM ident (, IDENT, ...)
-// - FUNCTION ::= FUNCTION ident '(' ')' $eol BLOCK $eol END FUNCTION
+// - DIM ::= dim IDENT (, IDENT, ...)
+// - FUNCTION ::= function IDENT '(' ')' $eol BLOCK $eol END FUNCTION
 // BLOCK ::= STMT*
 // STMT ::= EMPTYLN | LET | IF
 // EMPTYLN ::= ?comment $eol
-// LET ::= ident = EXPR
-// IF ::= IF EXPR $eol BLOCK $eol (?ELSEIF) (?ELSE) END IF
-// - ELSEIF
-// - ELSE
+// LET ::= IDENT = EXPR
+// IF ::= if EXPR $eol BLOCK $eol (?ELSEIF) (?ELSE) end if
+// ELSEIF ::= else if EXPR $eol BLOCK
+// ELSE ::= else $eol BLOCK
 // - WHILE
 
 // EXPR ::= OR
@@ -70,7 +70,7 @@ struct Lang {
 	}
 
 	int iskeyword(const string& str) {
-		static const vector<string> vec = { "if", "for", "while", "function", "end" };
+		static const vector<string> vec = { "if", "else", "for", "while", "function", "end" };
 		return find(vec.begin(), vec.end(), str) != vec.end();
 	}
 
@@ -96,7 +96,7 @@ struct Lang {
 		return 0;
 	}
 
-	// LET ::= ident = expr
+	// LET ::= IDENT = EXPR
 	int let(Node& parent) {
 		Node& n = parent.push({ "let" });
 		if ( ident(n) && expect("operator", "=") )
@@ -106,18 +106,31 @@ struct Lang {
 		return parent.pop(), 0;
 	}
 
-	// IF ::= IF EXPR $eol BLOCK $eol (?ELSEIF) (?ELSE) END IF
+	// IF ::= if EXPR $eol BLOCK $eol (?ELSEIF) (?ELSE) end if
 	int pif(Node& parent) {
 		Node& n = parent.push({ "if" });
 		if ( expect("keyword", "if") ) {
 			( expr(n) && pendl(n) && block(n) ) || error();
-			// pelse(n);  // optional
+			while ( pelseif(n) ) ;  // else-if (optional, many)
+			pelse(n);               // else (optional)
 			( expect("keyword", "end") && expect("keyword", "if") && pendl(n) ) || error();
 			return 1;
 		}
 		return parent.pop(), 0;
 	}
 
+	// ELSEIF ::= else if EXPR $eol BLOCK
+	int pelseif(Node& parent) {
+		Node& n = parent.push({ "elseif" });
+		if ( tok.peek() == "else" && tok.peek(1) == "if" ) {
+			tok.get(), tok.get();
+			( expr(n) && pendl(n) && block(n) ) || error();
+			return 1;
+		}
+		return parent.pop(), 0;
+	}
+
+	// ELSE ::= else $eol BLOCK
 	int pelse(Node& parent) {
 		Node& n = parent.push({ "else" });
 		if ( expect("keyword", "else") )

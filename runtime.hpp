@@ -46,6 +46,7 @@ struct Runtime {
 		}
 		else if (n.type == "elseif") return expr(n.list.at(0)) ? (block( n.list.at(1) ), 1) : 0;
 		else if (n.type == "else")   return block( n.list.at(0) ), 1;
+		else if (n.type == "while")  while ( expr(n.list.at(0)) )  block( n.list.at(1) );
 		else    error("unknown statement: " + n.type);
 		return 0;
 	}

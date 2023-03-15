@@ -11,13 +11,13 @@ using namespace std;
 // - DIM ::= dim IDENT (, IDENT, ...)
 // - FUNCTION ::= function IDENT '(' ')' $eol BLOCK $eol END FUNCTION
 // BLOCK ::= STMT*
-// STMT ::= EMPTYLN | LET | IF
+// STMT ::= EMPTYLN | IF | WHILE | LET
 // EMPTYLN ::= ?comment $eol
 // LET ::= IDENT = EXPR
 // IF ::= if EXPR $eol BLOCK $eol (?ELSEIF) (?ELSE) end if
 // ELSEIF ::= else if EXPR $eol BLOCK
 // ELSE ::= else $eol BLOCK
-// - WHILE
+// WHILE ::= while EXPR $eol BLOCK $eol end while $eol
 // - PRINT
 
 // EXPR ::= OR
@@ -139,6 +139,18 @@ struct Lang {
 		return parent.pop(), 0;
 	}
 
+	// WHILE ::= while EXPR $eol BLOCK $eol end while $eol
+	int pwhile(Node& parent) {
+		Node& n = parent.push({ "while" });
+		if ( expect("keyword", "while") )
+			return 
+				expr(n) && pendl(n) 
+				&& block(n)
+				&& expect("keyword", "end") && expect("keyword", "while") && pendl(n)
+				? 1 : error();
+		return parent.pop(), 0;
+	}
+
 	// BLOCK ::= STMT*
 	int block(Node& parent) {
 		Node& n = parent.push({ "block" });
@@ -146,9 +158,9 @@ struct Lang {
 		return 1;
 	}
 
-	// STMT ::= EMPTYLN | LET | IF
+	// STMT ::= EMPTYLN | IF | WHILE | LET
 	int stmt(Node& parent) {
-		return emptyln(parent) || let(parent) || pif(parent);
+		return emptyln(parent) || pwhile(parent) || pif(parent) || let(parent);
 	}
 
 	// --- expressions ---

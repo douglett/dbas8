@@ -27,7 +27,7 @@ struct Runtime {
 			printf("%-10s :: %d\n", p.first.c_str(), p.second);
 	}
 
-	void error(const string& msg = "") {
+	int error(const string& msg = "") {
 		throw parse_error("::runtime_fail:: " + msg);
 	}
 
@@ -53,6 +53,7 @@ struct Runtime {
 	int expr(const Node& n) {
 		if      (n.type == "expr") return expr( n.list.at(0) );
 		else if (n.type == "number") return stoi( n.val );
+		else if (n.type == "identifier") return mem.count(n.val) ? mem[n.val] : error("missing identifier: [" + n.val + "]");
 		else if (n.val  == "||") return expr( n.list.at(0) ) || expr( n.list.at(1) );
 		else if (n.val  == "&&") return expr( n.list.at(0) ) && expr( n.list.at(1) );
 		else if (n.val  == "==") return expr( n.list.at(0) ) == expr( n.list.at(1) );
@@ -65,6 +66,6 @@ struct Runtime {
 		else if (n.val  == "-" ) return expr( n.list.at(0) ) -  expr( n.list.at(1) );
 		else if (n.val  == "*" ) return expr( n.list.at(0) ) *  expr( n.list.at(1) );
 		else if (n.val  == "/" ) return expr( n.list.at(0) ) /  expr( n.list.at(1) );
-		return error("unknown expr: " + n.type + " [" + n.val + "]"), 0;
+		return error("unknown expr: " + n.type + " [" + n.val + "]");
 	}
 };

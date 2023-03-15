@@ -10,3 +10,5 @@ else if 0
 else
 	b = 2
 end if
+
+c = a + 4

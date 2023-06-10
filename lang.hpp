@@ -59,7 +59,7 @@ struct Lang {
 	}
 
 	int error() {
-		throw parse_error("::parse_fail::");
+		throw parse_error("::parse_fail:: line " + to_string(tok.lno) + ", pos " + to_string(tok.pos));
 	}
 
 	// --- basic types ---

@@ -4,13 +4,25 @@
 using namespace std;
 
 
+enum VARTYPE {
+	VT_NULL = 0,
+	VT_INT,
+	VT_STRING,
+	VT_OBJECT
+};
+struct Var {
+	VARTYPE type;
+	int i;
+	string s;
+	// static Var null() { return { VT_NULL }; }
+};
+
+
 struct Runtime {
 	Node prog;
-	map<string, int> mem;
+	map<string, Var> mem;
 
 	int run() {
-		// for (const auto& n : prog.list)
-		// 	stmt(n);
 		block( prog.list.at(0) );
 		return 0;
 	}
@@ -24,7 +36,7 @@ struct Runtime {
 
 	void showmem() {
 		for (auto p : mem)
-			printf("%-10s :: %d\n", p.first.c_str(), p.second);
+			printf("%-10s :: %d\n", p.first.c_str(), p.second.i);
 	}
 
 	int error(const string& msg = "") {
@@ -38,7 +50,7 @@ struct Runtime {
 
 	int stmt(const Node& n) {
 		// printf("%s\n", n.type.c_str());
-		if      (n.type == "let") mem[ n.list.at(0).val ] = expr( n.list.at(1) );
+		if      (n.type == "let") memseti( n.list.at(0).val, expr( n.list.at(1) ) );
 		else if (n.type == "if") {
 			if ( expr(n.list.at(0)) ) return block( n.list.at(1) ), 1;  // first condition
 			for (int i = 2; i < n.list.size(); i++)
@@ -54,7 +66,7 @@ struct Runtime {
 	int expr(const Node& n) {
 		if      (n.type == "expr") return expr( n.list.at(0) );
 		else if (n.type == "number") return stoi( n.val );
-		else if (n.type == "identifier") return mem.count(n.val) ? mem[n.val] : error("missing identifier: [" + n.val + "]");
+		else if (n.type == "identifier") return memgeti(n.val);
 		else if (n.val  == "||") return expr( n.list.at(0) ) || expr( n.list.at(1) );
 		else if (n.val  == "&&") return expr( n.list.at(0) ) && expr( n.list.at(1) );
 		else if (n.val  == "==") return expr( n.list.at(0) ) == expr( n.list.at(1) );
@@ -68,5 +80,18 @@ struct Runtime {
 		else if (n.val  == "*" ) return expr( n.list.at(0) ) *  expr( n.list.at(1) );
 		else if (n.val  == "/" ) return expr( n.list.at(0) ) /  expr( n.list.at(1) );
 		return error("unknown expr: " + n.type + " [" + n.val + "]");
+	}
+
+	// memory
+	Var& memget(const string& id) {
+		if (!mem.count(id)) error("missing identifier: [" + id + "]");
+		return mem[id];
+	}
+	int& memgeti(const string& id) {
+		if (memget(id).type != VT_INT) error("expected int, identifier: [" + id + "]");
+		return memget(id).i;
+	}
+	void memseti(const string& id, int i) {
+		mem[ id ] = { VT_INT, i };
 	}
 };

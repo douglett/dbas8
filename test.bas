@@ -12,3 +12,5 @@ else if b == 2
 else
 	c = 5
 end if
+
+d = "ass"

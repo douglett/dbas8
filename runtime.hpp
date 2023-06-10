@@ -148,10 +148,10 @@ struct Runtime {
 		if (!mem.count(id)) error("missing identifier: [" + id + "]");
 		return mem[id];
 	}
-	int& memgeti(const string& id) {
-		if (memget(id).type != VT_INT) error("expected int, identifier: [" + id + "]");
-		return memget(id).i;
-	}
+	// int& memgeti(const string& id) {
+	// 	if (memget(id).type != VT_INT) error("expected int, identifier: [" + id + "]");
+	// 	return memget(id).i;
+	// }
 	// string& memgets(const string& id) {
 	// 	if (memget(id).type != VT_STRING) error("expected string, identifier: [" + id + "]");
 	// 	return memget(id).s;
@@ -159,7 +159,7 @@ struct Runtime {
 	void memset(const string& id, const Var& v) {
 		mem[ id ] = v;
 	}
-	void memseti(const string& id, int i) {
-		mem[ id ] = { VT_INT, i };
-	}
+	// void memseti(const string& id, int i) {
+	// 	mem[ id ] = { VT_INT, i };
+	// }
 };

@@ -26,7 +26,7 @@ using namespace std;
 // CMP ::= ADD ( == != >= <= > < ) ADD
 // ADD ::= MUL (+|-) ADD
 // MUL ::= VALUE (*|/) MUL
-// VALUE ::= NUMBER | STRLIT | IDENT | BRACKETS
+// VALUE ::= NUMBER | STRLIT | IDENT | OBJLIT | BRACKETS
 // BRACKETS ::= '(' EXPR ')'
 
 
@@ -84,6 +84,13 @@ struct Lang {
 	int strlit(Node& parent) {
 		return tok.isstrlit(tok.peek())
 			? parent.push({ "strlit", tok.stripstrlit(tok.get()) }), 1
+			: 0;
+	}
+
+	int objlit(Node& parent) {
+		string op;
+		return tok.peek() == "{" && tok.peek(1) == "}"
+			? op = tok.get(), op += tok.get(), parent.push({ "objlit", op }), 1
 			: 0;
 	}
 
@@ -238,9 +245,9 @@ struct Lang {
 		return ok;
 	}
 
-	// VALUE ::= NUMBER | STRLIT | IDENT | BRACKETS
+	// VALUE ::= NUMBER | STRLIT | IDENT | OBJLIT | BRACKETS
 	int exprvalue(Node& parent) {
-		return number(parent) || strlit(parent) || ident(parent) || exprbrackets(parent);
+		return number(parent) || strlit(parent) || ident(parent) || objlit(parent) || exprbrackets(parent);
 	}
 
 	// BRACKETS ::= '(' EXPR ')'

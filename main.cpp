@@ -8,7 +8,7 @@ int main() {
 	printf("hello world\n");
 
 	Lang l;
-	l.tok.loadf("test.bas");
+	l.tok.loadf("testscripts/test2.bas");
 	int ok = l.parsec();
 	// printf("completed: %d\n", ok);
 	l.prog.show();

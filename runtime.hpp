@@ -18,6 +18,8 @@ struct Var {
 	static Var null() { return { VT_NULL }; }
 	static Var num(int i) { return { VT_INT, i }; }
 	static Var str(const string& s) { return { VT_STRING, 0, s }; }
+	static Var obj() { return { VT_OBJECT }; }
+	
 	string tostring() const {
 		switch (type) {
 		case VT_INT:     return to_string(i);
@@ -107,6 +109,7 @@ struct Runtime {
 		if      (n.type == "expr") return expr2(n.list.at(0));
 		else if (n.type == "number") return { VT_INT, stoi(n.val) };
 		else if (n.type == "strlit") return { VT_STRING, 0, n.val };
+		else if (n.type == "objlit") return Var::obj();
 		else if (n.type == "identifier") return memget(n.val);
 		// logical comparisons
 		else if (n.val  == "||") return Var::num( expr2i(n.list.at(0)) || expr2i(n.list.at(1)) );

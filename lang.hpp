@@ -208,9 +208,9 @@ struct Lang {
 		if ( !expradd(parent) ) return 0;
 		string op;
 		if      ( tok.peek() == "=" && tok.peek(1) == "=" ) op = tok.get() + tok.get();
-		else if ( tok.peek() == "!" && tok.peek(1) == "=" ) op = tok.get() + tok.get();
-		else if ( tok.peek() == ">" && tok.peek(1) == "=" ) op = tok.get() + tok.get();
-		else if ( tok.peek() == "<" && tok.peek(1) == "=" ) op = tok.get() + tok.get();
+		else if ( tok.peek() == "!" && tok.peek(1) == "=" ) op = tok.get(), op += tok.get(); // fix out-of-order get (why?)
+		else if ( tok.peek() == ">" && tok.peek(1) == "=" ) op = tok.get(), op += tok.get();
+		else if ( tok.peek() == "<" && tok.peek(1) == "=" ) op = tok.get(), op += tok.get();
 		else if ( tok.peek() == "<" ) op = tok.get();
 		else if ( tok.peek() == ">" ) op = tok.get();
 		else    return 1;  // lhs found

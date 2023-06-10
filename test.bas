@@ -14,3 +14,13 @@ else
 end if
 
 d = "ass"
+
+if d == "ass"
+	e = "asshole"
+end if
+if d != "ass2"
+	f = "ass2"
+end if
+if d == 1
+	g = "one"
+end if

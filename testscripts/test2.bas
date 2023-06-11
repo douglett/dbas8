@@ -3,5 +3,6 @@ a = {}
 delete a
 
 a = {}
-//a.b = 1
-fart
+a.b = 1
+
+c = 1

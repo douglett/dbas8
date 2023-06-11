@@ -179,7 +179,7 @@ struct Lang {
 		Node& n = parent.push({ "block" });
 		while (true)
 			if      (stmt(n)) ;
-			else if (tok.peek() == "end") break;
+			else if (tok.peek() == "end" || tok.peek() == tok.TOK_EOL || tok.peek() == tok.TOK_EOF) break;
 			else    error();
 		return 1;
 	}

@@ -18,29 +18,29 @@ struct Var {
 	static Var null() { return { VT_NULL }; }
 	static Var num(int i) { return { VT_INT, i }; }
 	static Var str(const string& s) { return { VT_STRING, 0, s }; }
-	static Var obj(const string& addr) { return { VT_OBJECT, 0, addr }; }
+	static Var obj(int addr) { return { VT_OBJECT, addr }; }
 	
 	string tostring() const {
 		switch (type) {
 		case VT_INT:     return to_string(i);
 		case VT_STRING:  return s;
-		case VT_OBJECT:  return s;
-		default:
+		case VT_OBJECT:  return "@" + to_string(i);
 		case VT_NULL:    return "$NULL";
 		}
+		throw runtime_error("type error");
 	}
 	string typestring() const {
 		switch (type) {
 		case VT_INT:     return "number";
 		case VT_STRING:  return "string";
 		case VT_OBJECT:  return "object";
-		default:
 		case VT_NULL:    return "null";
 		}
+		throw runtime_error("type error");
 	}
 };
 struct Obj {
-	string addr;
+	int addr;
 	map<string, Var> obj;
 	vector<Var> arr;
 };
@@ -49,7 +49,7 @@ struct Obj {
 struct Runtime {
 	Node prog;
 	map<string, Var> mem;
-	map<string, Obj> heap;
+	map<int, Obj> heap;
 	int heapaddr = 0;
 
 	int run() {
@@ -60,7 +60,7 @@ struct Runtime {
 	int runc() {
 		try 
 			{ return run(); }
-		catch ( parse_error& p ) 
+		catch ( runtime_error& p ) 
 			{ return printf( "%s\n", p.what() ), 0; }
 	}
 
@@ -68,11 +68,11 @@ struct Runtime {
 		for (const auto& p : mem)
 			printf("%-10s :: %s\n", p.first.c_str(), p.second.tostring().c_str());
 		for (const auto& p : heap)
-			printf("%-10s :: %s\n", p.first.c_str(), "{}");
+			printf("@%08d  :: %s\n", p.first, "{}");
 	}
 
 	int error(const string& msg = "") {
-		throw parse_error("::runtime_fail:: " + msg);
+		throw runtime_error("::runtime_fail:: " + msg);
 	}
 
 	void block(const Node& n) {
@@ -117,7 +117,7 @@ struct Runtime {
 	// }
 
 	Var expr2(const Node& n) {
-		if      (n.type == "expr") return expr2(n.list.at(0));
+		if      (n.type == "expr")   return expr2(n.list.at(0));
 		else if (n.type == "number") return { VT_INT, stoi(n.val) };
 		else if (n.type == "strlit") return { VT_STRING, 0, n.val };
 		else if (n.type == "objlit") return memalloc();
@@ -150,11 +150,14 @@ struct Runtime {
 	}
 
 	int expr2cmp(const Var& l, const Var& r) {
-		if      (l.type == VT_INT && r.type == VT_INT) return l.i == r.i;
-		else if (l.type == VT_STRING && r.type == VT_STRING) return l.s == r.s;
-		else if (l.type == VT_NULL && r.type == VT_NULL) return true;
-		// else if (l.type == VT_OBJECT && r.type == VT_OBJECT) return true;
-		return error("invalid comparison: " + l.typestring() + ", " + r.typestring());
+		if      (l.type != r.type) return error("invalid comparison: " + l.typestring() + ", " + r.typestring());
+		switch (l.type) {
+		case VT_INT:     return l.i == r.i;
+		case VT_STRING:  return l.s == r.s;
+		case VT_OBJECT:  return l.s == r.s;
+		case VT_NULL:    return true;
+		}
+		return error("type error");
 	}
 
 	// memory
@@ -177,12 +180,12 @@ struct Runtime {
 	// 	mem[ id ] = { VT_INT, i };
 	// }
 	Var memalloc() {
-		string addr = "@" + to_string(++heapaddr);
-		heap[addr] = { addr };
-		return Var::obj(addr);
+		heapaddr++;
+		heap[heapaddr] = { heapaddr };
+		return Var::obj(heapaddr);
 	}
 	void memfree(const Var& addr) {
-		if (addr.type != VT_OBJECT || !heap.count(addr.s)) error("bad memory access");
-		heap.erase(addr.s);
+		if (addr.type != VT_OBJECT || !heap.count(addr.i)) error("bad memory access");
+		heap.erase(addr.i);
 	}
 };

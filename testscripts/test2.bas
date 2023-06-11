@@ -1,5 +1,6 @@
 // object tests
 a = {}
-
-//a.b = 1
 delete a
+
+a = {}
+//a.b = 1

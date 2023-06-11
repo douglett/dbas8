@@ -27,6 +27,7 @@ using namespace std;
 // ADD ::= MUL (+|-) ADD
 // MUL ::= VALUE (*|/) MUL
 // VALUE ::= NUMBER | STRLIT | IDENT | OBJLIT | BRACKETS
+// VARPATH ::= IDENT ( . IDENT | [ EXPR ] )*
 // BRACKETS ::= '(' EXPR ')'
 
 

@@ -18,13 +18,13 @@ struct Var {
 	static Var null() { return { VT_NULL }; }
 	static Var num(int i) { return { VT_INT, i }; }
 	static Var str(const string& s) { return { VT_STRING, 0, s }; }
-	static Var obj() { return { VT_OBJECT }; }
+	static Var obj(const string& addr) { return { VT_OBJECT, 0, addr }; }
 	
 	string tostring() const {
 		switch (type) {
 		case VT_INT:     return to_string(i);
 		case VT_STRING:  return s;
-		case VT_OBJECT:  return "${}";
+		case VT_OBJECT:  return s;
 		default:
 		case VT_NULL:    return "$NULL";
 		}
@@ -39,11 +39,18 @@ struct Var {
 		}
 	}
 };
+struct Obj {
+	string addr;
+	map<string, Var> obj;
+	vector<Var> arr;
+};
 
 
 struct Runtime {
 	Node prog;
 	map<string, Var> mem;
+	map<string, Obj> heap;
+	int heapaddr = 0;
 
 	int run() {
 		block( prog.list.at(0) );
@@ -109,7 +116,7 @@ struct Runtime {
 		if      (n.type == "expr") return expr2(n.list.at(0));
 		else if (n.type == "number") return { VT_INT, stoi(n.val) };
 		else if (n.type == "strlit") return { VT_STRING, 0, n.val };
-		else if (n.type == "objlit") return Var::obj();
+		else if (n.type == "objlit") return memalloc();
 		else if (n.type == "identifier") return memget(n.val);
 		// logical comparisons
 		else if (n.val  == "||") return Var::num( expr2i(n.list.at(0)) || expr2i(n.list.at(1)) );
@@ -165,4 +172,9 @@ struct Runtime {
 	// void memseti(const string& id, int i) {
 	// 	mem[ id ] = { VT_INT, i };
 	// }
+	Var memalloc() {
+		string addr = "@" + to_string(++heapaddr);
+		heap[addr] = { addr };
+		return Var::obj(addr);
+	}
 };

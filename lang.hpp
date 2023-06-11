@@ -11,7 +11,7 @@ using namespace std;
 // - DIM ::= dim IDENT (, IDENT, ...)
 // - FUNCTION ::= function IDENT '(' ')' $eol BLOCK $eol END FUNCTION
 // BLOCK ::= STMT*
-// STMT ::= EMPTYLN | IF | WHILE | LET
+// STMT ::= EMPTYLN | IF | WHILE | DELETE | LET
 // EMPTYLN ::= ?comment $eol
 // LET ::= IDENT = EXPR
 // IF ::= if EXPR $eol BLOCK $eol (?ELSEIF) (?ELSE) end if
@@ -19,6 +19,7 @@ using namespace std;
 // ELSE ::= else $eol BLOCK
 // WHILE ::= while EXPR $eol BLOCK $eol end while $eol
 // - PRINT
+// DELETE ::= delete IDENT
 
 // EXPR ::= OR
 // OR ::= AND || OR
@@ -27,7 +28,7 @@ using namespace std;
 // ADD ::= MUL (+|-) ADD
 // MUL ::= VALUE (*|/) MUL
 // VALUE ::= NUMBER | STRLIT | IDENT | OBJLIT | BRACKETS
-// VARPATH ::= IDENT ( . IDENT | [ EXPR ] )*
+// - VARPATH ::= IDENT ( . IDENT | [ EXPR ] )*
 // BRACKETS ::= '(' EXPR ')'
 
 
@@ -72,7 +73,7 @@ struct Lang {
 	}
 
 	int iskeyword(const string& str) {
-		static const vector<string> vec = { "if", "else", "for", "while", "function", "end" };
+		static const vector<string> vec = { "if", "else", "for", "while", "function", "end", "delete" };
 		return find(vec.begin(), vec.end(), str) != vec.end();
 	}
 
@@ -165,6 +166,14 @@ struct Lang {
 		return parent.pop(), 0;
 	}
 
+	// DELETE ::= delete IDENT
+	int pdelete(Node& parent) {
+		Node& n = parent.push({ "delete" });
+		if ( expect("keyword", "delete") )
+			return ident(n) ? 1 : error();
+		return parent.pop(), 0;
+	}
+
 	// BLOCK ::= STMT*
 	int block(Node& parent) {
 		Node& n = parent.push({ "block" });
@@ -174,7 +183,7 @@ struct Lang {
 
 	// STMT ::= EMPTYLN | IF | WHILE | LET
 	int stmt(Node& parent) {
-		return emptyln(parent) || pwhile(parent) || pif(parent) || let(parent);
+		return emptyln(parent) || pwhile(parent) || pif(parent) || pdelete(parent) || let(parent);
 	}
 
 	// --- expressions ---

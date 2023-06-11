@@ -65,8 +65,10 @@ struct Runtime {
 	}
 
 	void showmem() {
-		for (auto p : mem)
+		for (const auto& p : mem)
 			printf("%-10s :: %s\n", p.first.c_str(), p.second.tostring().c_str());
+		for (const auto& p : heap)
+			printf("%-10s :: %s\n", p.first.c_str(), "{}");
 	}
 
 	int error(const string& msg = "") {
@@ -82,13 +84,15 @@ struct Runtime {
 		// printf("%s\n", n.type.c_str());
 		if      (n.type == "let") memset( n.list.at(0).val, expr2( n.list.at(1) ) );
 		else if (n.type == "if") {
-			if ( expr2i(n.list.at(0)) ) return block( n.list.at(1) ), 1;  // first condition
+			if ( expr2i(n.list.at(0)) )
+				return block( n.list.at(1) ), 1;  // first condition
 			for (int i = 2; i < n.list.size(); i++)
 				if ( stmt(n.list.at(i)) ) return 1;  // sub-conditions
 		}
-		else if (n.type == "elseif") return expr2i(n.list.at(0)) ? (block( n.list.at(1) ), 1) : 0;
-		else if (n.type == "else")   return block( n.list.at(0) ), 1;
-		else if (n.type == "while")  while ( expr2i(n.list.at(0)) )  block( n.list.at(1) );
+		else if (n.type == "elseif")  return expr2i(n.list.at(0)) ? (block( n.list.at(1) ), 1) : 0;
+		else if (n.type == "else")    return block( n.list.at(0) ), 1;
+		else if (n.type == "while")   while ( expr2i(n.list.at(0)) )  block( n.list.at(1) );
+		else if (n.type == "delete")  memfree( expr2(n.list.at(0)) );
 		else    error("unknown statement: " + n.type);
 		return 0;
 	}
@@ -176,5 +180,9 @@ struct Runtime {
 		string addr = "@" + to_string(++heapaddr);
 		heap[addr] = { addr };
 		return Var::obj(addr);
+	}
+	void memfree(const Var& addr) {
+		if (addr.type != VT_OBJECT || !heap.count(addr.s)) error("bad memory access");
+		heap.erase(addr.s);
 	}
 };

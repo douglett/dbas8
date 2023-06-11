@@ -28,7 +28,7 @@ using namespace std;
 // ADD ::= MUL (+|-) ADD
 // MUL ::= VALUE (*|/) MUL
 // VALUE ::= NUMBER | STRLIT | IDENT | OBJLIT | BRACKETS
-// - VARPATH ::= IDENT ( . IDENT | [ EXPR ] )*
+// VARPATH ::= IDENT ( . IDENT | [ EXPR ] )*
 // BRACKETS ::= '(' EXPR ')'
 
 
@@ -177,7 +177,10 @@ struct Lang {
 	// BLOCK ::= STMT*
 	int block(Node& parent) {
 		Node& n = parent.push({ "block" });
-		while ( stmt(n) ) ;
+		while (true)
+			if      (stmt(n)) ;
+			else if (tok.peek() == "end") break;
+			else    error();
 		return 1;
 	}
 
@@ -258,6 +261,19 @@ struct Lang {
 	// VALUE ::= NUMBER | STRLIT | IDENT | OBJLIT | BRACKETS
 	int exprvalue(Node& parent) {
 		return number(parent) || strlit(parent) || ident(parent) || objlit(parent) || exprbrackets(parent);
+	}
+
+	// VARPATH ::= IDENT ( . IDENT | [ EXPR ] )*
+	int varpath(Node& parent) {
+		if (!ident(parent)) return 0;
+		if (tok.peek() == "." || tok.peek() == "[") {
+			auto& n = parent.push({ "varpath", "", { parent.popout() } });
+			while (true)
+				if      (expect("operator", ".")) ident(n) || error();
+				// else if (expect("operator", "[")) expr(n) && expect("operator", "]") ? 1 : error();
+				else    break;
+		}
+		return 1;
 	}
 
 	// BRACKETS ::= '(' EXPR ')'

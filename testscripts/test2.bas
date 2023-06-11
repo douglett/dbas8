@@ -4,3 +4,4 @@ delete a
 
 a = {}
 //a.b = 1
+fart

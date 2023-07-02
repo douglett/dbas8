@@ -58,6 +58,7 @@ struct Runtime {
 	}
 
 	int runc() {
+		printf(":running:\n");
 		try 
 			{ return run(); }
 		catch ( runtime_error& p ) 
@@ -82,7 +83,8 @@ struct Runtime {
 
 	int stmt(const Node& n) {
 		// printf("%s\n", n.type.c_str());
-		if      (n.type == "let") memset( n.list.at(0).val, expr2( n.list.at(1) ) );
+		// if      (n.type == "let") memset( n.list.at(0).val, expr2( n.list.at(1) ) );
+		if      (n.type == "let") varpath_set( n.list.at(0), expr2(n.list.at(1)) );
 		else if (n.type == "if") {
 			if ( expr2i(n.list.at(0)) )
 				return block( n.list.at(1) ), 1;  // first condition
@@ -187,5 +189,10 @@ struct Runtime {
 	void memfree(const Var& addr) {
 		if (addr.type != VT_OBJECT || !heap.count(addr.i)) error("bad memory access");
 		heap.erase(addr.i);
+	}
+
+	// following paths to memory
+	void varpath_set(const Node& p, const Var& v) {
+		memset( p.list.at(0).val, v );
 	}
 };

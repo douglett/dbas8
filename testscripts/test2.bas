@@ -1,8 +1,9 @@
 // object tests
+g = 1
 a = {}
-delete a
+//delete a
 
-a = {}
-a.b = 1
+//a = {}
+//a.b = 1
 
-c = 1
+//c = 1

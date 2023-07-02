@@ -115,7 +115,7 @@ struct Lang {
 	// LET ::= IDENT = EXPR
 	int let(Node& parent) {
 		Node& n = parent.push({ "let" });
-		if ( ident(n) && expect("operator", "=") )
+		if ( varpath(n) && expect("operator", "=") )
 			return 
 				expr(n) && pendl(n)
 				? 1 : error();
@@ -265,14 +265,12 @@ struct Lang {
 
 	// VARPATH ::= IDENT ( . IDENT | [ EXPR ] )*
 	int varpath(Node& parent) {
-		if (!ident(parent)) return 0;
-		if (tok.peek() == "." || tok.peek() == "[") {
-			auto& n = parent.push({ "varpath", "", { parent.popout() } });
-			while (true)
-				if      (expect("operator", ".")) ident(n) || error();
-				// else if (expect("operator", "[")) expr(n) && expect("operator", "]") ? 1 : error();
-				else    break;
-		}
+		Node& n = parent.push({ "varpath" });
+		if (!ident(n)) return parent.pop(), 0;
+		while (true)
+			if      (expect("operator", ".")) ident(n) || error();
+			// else if (expect("operator", "[")) expr(n) && expect("operator", "]") ? 1 : error();
+			else    break;
 		return 1;
 	}
 

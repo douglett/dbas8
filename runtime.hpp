@@ -83,7 +83,6 @@ struct Runtime {
 
 	int stmt(const Node& n) {
 		// printf("%s\n", n.type.c_str());
-		// if      (n.type == "let") memset( n.list.at(0).val, expr2( n.list.at(1) ) );
 		if      (n.type == "let") varpath_set( n.list.at(0), expr2(n.list.at(1)) );
 		else if (n.type == "if") {
 			if ( expr2i(n.list.at(0)) )
@@ -98,25 +97,6 @@ struct Runtime {
 		else    error("unknown statement: " + n.type);
 		return 0;
 	}
-
-	// int expr(const Node& n) {
-	// 	if      (n.type == "expr") return expr( n.list.at(0) );
-	// 	else if (n.type == "number") return stoi( n.val );
-	// 	else if (n.type == "identifier") return memgeti(n.val);
-	// 	else if (n.val  == "||") return expr( n.list.at(0) ) || expr( n.list.at(1) );
-	// 	else if (n.val  == "&&") return expr( n.list.at(0) ) && expr( n.list.at(1) );
-	// 	else if (n.val  == "==") return expr( n.list.at(0) ) == expr( n.list.at(1) );
-	// 	else if (n.val  == "!=") return expr( n.list.at(0) ) != expr( n.list.at(1) );
-	// 	else if (n.val  == ">=") return expr( n.list.at(0) ) >= expr( n.list.at(1) );
-	// 	else if (n.val  == "<=") return expr( n.list.at(0) ) <= expr( n.list.at(1) );
-	// 	else if (n.val  == ">" ) return expr( n.list.at(0) ) >  expr( n.list.at(1) );
-	// 	else if (n.val  == "<" ) return expr( n.list.at(0) ) <  expr( n.list.at(1) );
-	// 	else if (n.val  == "+" ) return expr( n.list.at(0) ) +  expr( n.list.at(1) );
-	// 	else if (n.val  == "-" ) return expr( n.list.at(0) ) -  expr( n.list.at(1) );
-	// 	else if (n.val  == "*" ) return expr( n.list.at(0) ) *  expr( n.list.at(1) );
-	// 	else if (n.val  == "/" ) return expr( n.list.at(0) ) /  expr( n.list.at(1) );
-	// 	return error("unknown expr: " + n.type + " [" + n.val + "]");
-	// }
 
 	Var expr2(const Node& n) {
 		if      (n.type == "expr")   return expr2(n.list.at(0));
@@ -167,20 +147,9 @@ struct Runtime {
 		if (!mem.count(id)) error("missing identifier: [" + id + "]");
 		return mem[id];
 	}
-	// int& memgeti(const string& id) {
-	// 	if (memget(id).type != VT_INT) error("expected int, identifier: [" + id + "]");
-	// 	return memget(id).i;
-	// }
-	// string& memgets(const string& id) {
-	// 	if (memget(id).type != VT_STRING) error("expected string, identifier: [" + id + "]");
-	// 	return memget(id).s;
-	// }
 	void memset(const string& id, const Var& v) {
 		mem[ id ] = v;
 	}
-	// void memseti(const string& id, int i) {
-	// 	mem[ id ] = { VT_INT, i };
-	// }
 	Var memalloc() {
 		heapaddr++;
 		heap[heapaddr] = { heapaddr };

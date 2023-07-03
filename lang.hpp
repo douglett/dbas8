@@ -13,7 +13,7 @@ using namespace std;
 // BLOCK ::= STMT*
 // STMT ::= EMPTYLN | IF | WHILE | DELETE | LET
 // EMPTYLN ::= ?comment $eol
-// LET ::= IDENT = EXPR
+// LET ::= VARPATH = EXPR
 // IF ::= if EXPR $eol BLOCK $eol (?ELSEIF) (?ELSE) end if
 // ELSEIF ::= else if EXPR $eol BLOCK
 // ELSE ::= else $eol BLOCK
@@ -27,7 +27,7 @@ using namespace std;
 // CMP ::= ADD ( == != >= <= > < ) ADD
 // ADD ::= MUL (+|-) ADD
 // MUL ::= VALUE (*|/) MUL
-// VALUE ::= NUMBER | STRLIT | IDENT | OBJLIT | BRACKETS
+// VALUE ::= NUMBER | STRLIT | VARPATH | OBJLIT | BRACKETS
 // VARPATH ::= IDENT ( . IDENT | [ EXPR ] )*
 // BRACKETS ::= '(' EXPR ')'
 
@@ -112,7 +112,7 @@ struct Lang {
 		return 0;
 	}
 
-	// LET ::= IDENT = EXPR
+	// LET ::= VARPATH = EXPR
 	int let(Node& parent) {
 		Node& n = parent.push({ "let" });
 		if ( varpath(n) && expect("operator", "=") )
@@ -258,9 +258,9 @@ struct Lang {
 		return ok;
 	}
 
-	// VALUE ::= NUMBER | STRLIT | IDENT | OBJLIT | BRACKETS
+	// VALUE ::= NUMBER | STRLIT | VARPATH | OBJLIT | BRACKETS
 	int exprvalue(Node& parent) {
-		return number(parent) || strlit(parent) || ident(parent) || objlit(parent) || exprbrackets(parent);
+		return number(parent) || strlit(parent) || varpath(parent) || objlit(parent) || exprbrackets(parent);
 	}
 
 	// VARPATH ::= IDENT ( . IDENT | [ EXPR ] )*

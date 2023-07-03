@@ -1,1 +1,4 @@
 bin
+Makefile.win
+*.exe
+*.layout

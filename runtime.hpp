@@ -103,7 +103,8 @@ struct Runtime {
 		else if (n.type == "number") return { VT_INT, stoi(n.val) };
 		else if (n.type == "strlit") return { VT_STRING, 0, n.val };
 		else if (n.type == "objlit") return memalloc();
-		else if (n.type == "identifier") return memget(n.val);
+		//else if (n.type == "identifier") return stackget(n.val);
+		else if (n.type == "varpath") return varpath_get(n);
 		// logical comparisons
 		else if (n.val  == "||") return Var::num( expr2i(n.list.at(0)) || expr2i(n.list.at(1)) );
 		else if (n.val  == "&&") return Var::num( expr2i(n.list.at(0)) && expr2i(n.list.at(1)) );
@@ -143,11 +144,11 @@ struct Runtime {
 	}
 
 	// memory
-	Var& memget(const string& id) {
+	Var& stackget(const string& id) {
 		if (!mem.count(id)) error("missing identifier: [" + id + "]");
 		return mem[id];
 	}
-	void memset(const string& id, const Var& v) {
+	void stackset(const string& id, const Var& v) {
 		mem[ id ] = v;
 	}
 	Var memalloc() {
@@ -159,9 +160,38 @@ struct Runtime {
 		if (addr.type != VT_OBJECT || !heap.count(addr.i)) error("bad memory access");
 		heap.erase(addr.i);
 	}
+	Obj& memget(int addr) {
+		if (!heap.count(addr)) error("missing object at [" + to_string(addr) + "]");
+		return heap[addr];
+	}
+	Var& memgetprop(int addr, const string& id) {
+		Obj& obj = memget(addr);
+		if (!obj.obj.count(id)) error("missing object property [" + id + "]");
+		return obj.obj[id];
+	}
 
 	// following paths to memory
+	Var& varpath_get(const Node& p, int offset = 0) {
+		// stack access
+		Var& top = stackget( p.list.at(0).val );
+		Var* ptr = &top;
+		// heap access
+		for (int i = 1; i < p.list.size() + offset; i++) {
+			if      (ptr->type != VT_OBJECT) error("expected object in path");
+			else if (p.list.at(i).type == "identifier") ptr = &memgetprop(ptr->i, p.list.at(i).val);
+			else    error("varpath_get error");
+		}
+		return *ptr;
+	}
+	
 	void varpath_set(const Node& p, const Var& v) {
-		memset( p.list.at(0).val, v );
+		// stack access
+		if (p.list.size() == 1) { stackset( p.list.at(0).val, v ); return; }
+		// penultimate item in heap
+		Var& ptr = varpath_get(p, -1);
+		// set value
+		if      (ptr.type != VT_OBJECT) error("expected object in path");
+		else if (p.list.back().type == "identifier") memget(ptr.i).obj[ p.list.back().val ] = v;
+		else    error("varpath_set error");
 	}
 };
